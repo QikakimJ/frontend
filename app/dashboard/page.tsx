@@ -8,6 +8,14 @@ export default function Dashboard() {
   const router = useRouter();
   const [role, setRole] = useState<string | null>(null);
   const [email, setEmail] = useState<string | null>(null);
+
+  const normalizeRole = (value: string | null) => {
+    const normalized = value?.toLowerCase();
+    if (normalized === "courier" || normalized === "kurir") return "Courier";
+    if (normalized === "admin") return "Admin";
+    if (normalized === "user") return "User";
+    return value;
+  };
   const [statusMessage, setStatusMessage] = useState("");
   const [trackingNumber, setTrackingNumber] = useState("");
   const [shipmentResult, setShipmentResult] = useState<any>(null);
@@ -63,6 +71,11 @@ export default function Dashboard() {
       return;
     }
 
+    if (role !== "User") {
+      setCreateMessage("Hanya role User yang dapat membuat resi.");
+      return;
+    }
+
     setLoading(true);
     setCreateMessage("");
 
@@ -80,10 +93,6 @@ export default function Dashboard() {
       setReceiverName("");
       setOrigin("");
       setDestination("");
-
-      if (role === "Admin" || role === "Courier") {
-        fetchNotifications();
-      }
     } catch (error) {
       setCreateMessage("Gagal membuat resi baru. Pastikan data pengiriman valid.");
     } finally {
@@ -179,183 +188,125 @@ export default function Dashboard() {
           </div>
         </section>
 
-        <section className="stats-grid">
-          {role === "Admin" ? (
-            <>
-              <div className="metric-card">
-                <p className="text-sm uppercase tracking-[0.3em] text-slate-200">Notifikasi</p>
-                <h3 className="mt-4 text-2xl font-bold">Resi Baru</h3>
-                <p className="mt-3 text-sm leading-6 text-slate-200/90">
-                  Lihat order user terbaru dan cek data paket yang masuk.
-                </p>
-              </div>
-              <div className="metric-card secondary">
-                <p className="text-sm uppercase tracking-[0.3em] text-white/90">Kontrol</p>
-                <h3 className="mt-4 text-2xl font-bold">Review Paket</h3>
-                <p className="mt-3 text-sm leading-6 text-white/90">
-                  Kelola resi, status, dan konfirmasi pengiriman dengan mudah.
-                </p>
-              </div>
-              <div className="metric-card light">
-                <p className="text-sm uppercase tracking-[0.3em] text-slate-900">Operasi</p>
-                <h3 className="mt-4 text-2xl font-bold text-slate-900">Tim Pengiriman</h3>
-                <p className="mt-3 text-sm leading-6 text-slate-900/80">
-                  Sinkronisasi informasi paket antara user, admin, dan kurir.
-                </p>
-              </div>
-            </>
-          ) : role === "Courier" ? (
-            <>
-              <div className="metric-card">
-                <p className="text-sm uppercase tracking-[0.3em] text-slate-200">Pickup</p>
-                <h3 className="mt-4 text-2xl font-bold">Jadwal Harian</h3>
-                <p className="mt-3 text-sm leading-6 text-slate-200/90">
-                  Ikuti notifikasi paket baru dan siapkan penjemputan tepat waktu.
-                </p>
-              </div>
-              <div className="metric-card secondary">
-                <p className="text-sm uppercase tracking-[0.3em] text-white/90">Perjalanan</p>
-                <h3 className="mt-4 text-2xl font-bold">Update Status</h3>
-                <p className="mt-3 text-sm leading-6 text-white/90">
-                  Jalur paket sampai diterima user B, catat setiap perubahan status.
-                </p>
-              </div>
-              <div className="metric-card light">
-                <p className="text-sm uppercase tracking-[0.3em] text-slate-900">Tracking</p>
-                <h3 className="mt-4 text-2xl font-bold text-slate-900">Performance</h3>
-                <p className="mt-3 text-sm leading-6 text-slate-900/80">
-                  Pastikan semua paket bergerak lancar dari titik pickup hingga drop-off.
-                </p>
-              </div>
-            </>
-          ) : (
-            <>
-              <div className="metric-card">
-                <p className="text-sm uppercase tracking-[0.3em] text-slate-200">Pengiriman</p>
-                <h3 className="mt-4 text-2xl font-bold">Buat Paket Baru</h3>
-                <p className="mt-3 text-sm leading-6 text-slate-200/90">
-                  Input data pengirim dan penerima lalu dapatkan nomor resi otomatis.
-                </p>
-              </div>
-              <div className="metric-card secondary">
-                <p className="text-sm uppercase tracking-[0.3em] text-white/90">Resi</p>
-                <h3 className="mt-4 text-2xl font-bold">Tracking Mudah</h3>
-                <p className="mt-3 text-sm leading-6 text-white/90">
-                  Gunakan nomor resi untuk melacak paket kapan saja dalam dashboard.
-                </p>
-              </div>
-              <div className="metric-card">
-                <p className="text-sm uppercase tracking-[0.3em] text-slate-200">Layanan</p>
-                <h3 className="mt-4 text-2xl font-bold">Support JNE</h3>
-                <p className="mt-3 text-sm leading-6 text-slate-200/90">
-                  Pengiriman terpantau, paket terjaga, dan informasi tiba lebih cepat.
-                </p>
-              </div>
-            </>
-          )}
+        <section className="activity-summary-grid">
+          <div className="activity-card activity-card--blue">
+            <div className="activity-card__label">PENGIRIMAN</div>
+            <h3>Buat Paket Baru</h3>
+            <p>Input data pengirim dan penerima lalu dapatkan nomor resi otomatis.</p>
+          </div>
+
+          <div className="activity-card activity-card--red">
+            <div className="activity-card__label">RESI</div>
+            <h3>Tracking Mudah</h3>
+            <p>Gunakan nomor resi untuk melacak paket kapan saja dalam dashboard.</p>
+          </div>
+
+          <div className="activity-card activity-card--yellow">
+            <div className="activity-card__label">LAYANAN</div>
+            <h3>Support JNE</h3>
+            <p>Pengiriman terpantau, paket terjaga, dan informasi tiba lebih cepat.</p>
+          </div>
         </section>
 
         <section className="dashboard-panel p-8">
-          <div className="space-y-6">
+          <div className="section-heading">
             <div>
               <p className="text-sm uppercase tracking-[0.3em] text-jne-red">Aktivitas</p>
               <h2 className="mt-3 text-2xl font-bold text-slate-900">Flow setiap role</h2>
             </div>
+            <p className="max-w-2xl text-sm text-slate-600">
+              Fitur sesuai peran: user buat resi, courier cek resi, admin pantau notifikasi dan kontrol pengiriman.
+            </p>
+          </div>
 
-            {role === "User" && (
-              <div className="rounded-3xl border border-slate-200 bg-slate-50 p-6">
-                <p className="text-sm font-semibold text-slate-500">Buat Resi Paket Baru</p>
-                <div className="grid gap-4 mt-4 sm:grid-cols-2">
-                  <input
-                    type="text"
-                    placeholder="Nama Pengirim"
-                    className="input-field"
-                    value={senderName}
-                    onChange={(e) => setSenderName(e.target.value)}
-                  />
-                  <input
-                    type="text"
-                    placeholder="Nama Penerima"
-                    className="input-field"
-                    value={receiverName}
-                    onChange={(e) => setReceiverName(e.target.value)}
-                  />
-                  <input
-                    type="text"
-                    placeholder="Asal Paket"
-                    className="input-field"
-                    value={origin}
-                    onChange={(e) => setOrigin(e.target.value)}
-                  />
-                  <input
-                    type="text"
-                    placeholder="Tujuan Paket"
-                    className="input-field"
-                    value={destination}
-                    onChange={(e) => setDestination(e.target.value)}
-                  />
-                </div>
-                <div className="mt-5 grid gap-3 sm:grid-cols-2">
-                  <button type="button" onClick={handleCreateShipment} className="btn-primary" disabled={loading}>
-                    {loading ? "Membuat resi..." : "Buat Resi Baru"}
-                  </button>
-                  {createdResi && (
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setTrackingNumber(createdResi);
-                        setShipmentResult(null);
-                        setStatusMessage("");
-                      }}
-                      className="btn-secondary"
-                    >
-                      Gunakan Resi {createdResi}
+          <div className="activity-grid">
+            <div className="activity-column">
+              {role === "User" ? (
+                <div className="action-panel action-panel--user">
+                  <div className="action-panel__header">
+                    <p className="text-sm uppercase tracking-[0.3em] text-slate-200">Buat Resi Baru</p>
+                    <h3 className="mt-3 text-2xl font-bold text-white">Isi data paket Anda</h3>
+                  </div>
+                  <div className="action-panel__body">
+                    <div className="grid gap-4">
+                      <input
+                        type="text"
+                        placeholder="Nama Pengirim"
+                        className="input-field"
+                        value={senderName}
+                        onChange={(e) => setSenderName(e.target.value)}
+                      />
+                      <input
+                        type="text"
+                        placeholder="Nama Penerima"
+                        className="input-field"
+                        value={receiverName}
+                        onChange={(e) => setReceiverName(e.target.value)}
+                      />
+                      <input
+                        type="text"
+                        placeholder="Asal Paket"
+                        className="input-field"
+                        value={origin}
+                        onChange={(e) => setOrigin(e.target.value)}
+                      />
+                      <input
+                        type="text"
+                        placeholder="Tujuan Paket"
+                        className="input-field"
+                        value={destination}
+                        onChange={(e) => setDestination(e.target.value)}
+                      />
+                    </div>
+                    <button type="button" onClick={handleCreateShipment} className="btn-primary mt-6" disabled={loading}>
+                      {loading ? "Membuat resi..." : "Buat Resi Baru"}
                     </button>
-                  )}
-                </div>
-                {createMessage && (
-                  <div className="mt-4 rounded-2xl border border-slate-200 bg-white p-4 text-sm text-slate-700">
-                    {createMessage}
-                    {createdResi && <div className="mt-2 font-semibold">Resi: {createdResi}</div>}
-                  </div>
-                )}
-              </div>
-            )}
-
-            {(role === "Admin" || role === "Courier") && (
-              <div className="rounded-3xl border border-slate-200 bg-slate-50 p-6">
-                <div className="flex items-center justify-between gap-4">
-                  <div>
-                    <p className="text-sm font-semibold text-slate-500">Notifikasi Resi Baru</p>
-                    <p className="mt-1 text-sm text-slate-600">Paket terbaru yang dibuat oleh user.</p>
-                  </div>
-                  <button type="button" onClick={fetchNotifications} className="btn-secondary">
-                    Refresh
-                  </button>
-                </div>
-                <div className="mt-5 space-y-4">
-                  {shipments.length === 0 ? (
-                    <div className="rounded-2xl border border-slate-200 bg-white p-4 text-sm text-slate-600">Belum ada paket baru.</div>
-                  ) : (
-                    shipments.slice(0, 5).map((item) => (
-                      <div key={item.resi} className="rounded-2xl border border-slate-200 bg-white p-4">
-                        <div className="flex items-center justify-between gap-3">
-                          <p className="font-semibold text-slate-900">{item.resi}</p>
-                          <span className="rounded-full bg-slate-100 px-3 py-1 text-xs font-semibold text-slate-600">{item.status}</span>
-                        </div>
-                        <p className="mt-2 text-sm text-slate-600">{item.senderName} → {item.receiverName}</p>
-                        <p className="text-sm text-slate-500">{item.origin} → {item.destination}</p>
+                    {createdResi && (
+                      <div className="status-banner mt-4">
+                        <p className="font-semibold">Resi dibuat</p>
+                        <p className="mt-1 text-sm">Nomor resi Anda: <span className="font-bold">{createdResi}</span></p>
                       </div>
-                    ))
-                  )}
+                    )}
+                  </div>
                 </div>
-              </div>
-            )}
+              ) : (
+                <div className="action-panel action-panel--notify">
+                  <div className="action-panel__header">
+                    <p className="text-sm uppercase tracking-[0.3em] text-slate-500">Notifikasi Resi Baru</p>
+                    <h3 className="mt-3 text-2xl font-bold text-slate-900">Paket terbaru dari user</h3>
+                  </div>
+                  <div className="action-panel__body">
+                    <button type="button" onClick={fetchNotifications} className="btn-secondary w-full mb-4">
+                      Refresh Notifikasi
+                    </button>
+                    <div className="notification-list">
+                      {shipments.length === 0 ? (
+                        <div className="notification-card">Belum ada paket baru.</div>
+                      ) : (
+                        shipments.slice(0, 5).map((item) => (
+                          <div key={item.resi} className="notification-card">
+                            <div className="notification-card__top">
+                              <span className="notification-card__resi">{item.resi}</span>
+                              <span className="status-pill">{item.status}</span>
+                            </div>
+                            <p className="text-sm text-slate-600">{item.senderName} → {item.receiverName}</p>
+                            <p className="text-xs text-slate-500 mt-1">{item.origin} → {item.destination}</p>
+                          </div>
+                        ))
+                      )}
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
 
-            <div className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
-              <div className="grid gap-4 sm:grid-cols-2">
-                <div className="space-y-3 rounded-3xl bg-slate-50 p-5">
-                  <p className="text-sm font-medium text-slate-500">Lacak Paket</p>
+            <div className="activity-column">
+              <div className="action-panel action-panel--track">
+                <div className="action-panel__header">
+                  <p className="text-sm uppercase tracking-[0.3em] text-slate-500">Lacak Paket</p>
+                  <h3 className="mt-3 text-2xl font-bold text-slate-900">Masukkan nomor resi</h3>
+                </div>
+                <div className="action-panel__body">
                   <input
                     type="text"
                     placeholder="Masukkan nomor resi"
@@ -363,54 +314,64 @@ export default function Dashboard() {
                     value={trackingNumber}
                     onChange={(e) => setTrackingNumber(e.target.value)}
                   />
-                  <button type="button" onClick={handleTrackShipment} className="btn-primary" disabled={loading}>
+                  <button type="button" onClick={handleTrackShipment} className="btn-primary mt-4" disabled={loading}>
                     {loading ? "Memeriksa..." : "Cek Status"}
                   </button>
-                </div>
 
-                {role === "Courier" && shipmentResult && (
-                  <div className="space-y-3 rounded-3xl bg-slate-50 p-5">
-                    <p className="text-sm font-medium text-slate-500">Update Status Kurir</p>
-                    <select
-                      className="select-field"
-                      value={updateStatus}
-                      onChange={(e) => setUpdateStatus(e.target.value)}
-                    >
-                      <option value="Pending">Pending</option>
-                      <option value="Picked">Picked</option>
-                      <option value="On Delivery">On Delivery</option>
-                      <option value="Delivered">Delivered</option>
-                    </select>
-                    <button type="button" onClick={handleCourierUpdate} className="btn-secondary" disabled={loading}>
-                      {loading ? "Memproses..." : "Update Status"}
-                    </button>
-                  </div>
-                )}
+                  {role === "Courier" && shipmentResult && (
+                    <div className="mt-5 rounded-3xl border border-slate-200 bg-slate-50 p-5">
+                      <p className="text-sm font-semibold text-slate-500">Update Status Kurir</p>
+                      <select
+                        className="select-field mt-3"
+                        value={updateStatus}
+                        onChange={(e) => setUpdateStatus(e.target.value)}
+                      >
+                        <option value="Pending">Pending</option>
+                        <option value="Picked">Picked</option>
+                        <option value="On Delivery">On Delivery</option>
+                        <option value="Delivered">Delivered</option>
+                      </select>
+                      <button type="button" onClick={handleCourierUpdate} className="btn-secondary mt-4" disabled={loading}>
+                        {loading ? "Memproses..." : "Update Status"}
+                      </button>
+                    </div>
+                  )}
+
+                  {role === "Courier" && !shipmentResult && (
+                    <div className="status-note mt-4">Masukkan nomor resi dan klik Cek Status untuk menampilkan update posisi paket.</div>
+                  )}
+
+                  {statusMessage && (
+                    <div className="status-note status-note--warn mt-4">{statusMessage}</div>
+                  )}
+
+                  {shipmentResult && (
+                    <div className="shipment-card mt-5">
+                      <div className="shipment-card__title">Detail Resi</div>
+                      <div className="shipment-card__row">
+                        <span>Resi</span>
+                        <strong>{shipmentResult.resi || trackingNumber}</strong>
+                      </div>
+                      <div className="shipment-card__row">
+                        <span>Status</span>
+                        <strong>{shipmentResult.status}</strong>
+                      </div>
+                      <div className="shipment-card__row">
+                        <span>Pengirim</span>
+                        <strong>{shipmentResult.senderName || "-"}</strong>
+                      </div>
+                      <div className="shipment-card__row">
+                        <span>Penerima</span>
+                        <strong>{shipmentResult.receiverName || "-"}</strong>
+                      </div>
+                      <div className="shipment-card__row">
+                        <span>Rute</span>
+                        <strong>{shipmentResult.origin || "-"} → {shipmentResult.destination || "-"}</strong>
+                      </div>
+                    </div>
+                  )}
+                </div>
               </div>
-
-              {role === "Courier" && !shipmentResult && (
-                <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4 text-sm text-slate-700">
-                  Masukkan nomor resi dan cek status dulu sebelum melakukan update paket.
-                </div>
-              )}
-
-              {statusMessage && (
-                <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4 text-sm text-slate-700">
-                  {statusMessage}
-                </div>
-              )}
-
-              {shipmentResult && (
-                <div className="rounded-3xl border border-slate-200 bg-slate-50 p-5">
-                  <p className="text-sm font-semibold text-slate-500">Detail Resi</p>
-                  <p className="mt-3 text-lg font-semibold text-slate-900">{shipmentResult.resi || trackingNumber}</p>
-                  <p className="mt-2 text-sm text-slate-600">Status: {shipmentResult.status}</p>
-                  <p className="mt-1 text-sm text-slate-600">Pengirim: {shipmentResult.senderName || "-"}</p>
-                  <p className="mt-1 text-sm text-slate-600">Penerima: {shipmentResult.receiverName || "-"}</p>
-                  <p className="mt-1 text-sm text-slate-600">Asal: {shipmentResult.origin || "-"}</p>
-                  <p className="mt-1 text-sm text-slate-600">Tujuan: {shipmentResult.destination || "-"}</p>
-                </div>
-              )}
             </div>
           </div>
         </section>

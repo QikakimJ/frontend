@@ -11,6 +11,14 @@ const roles = [
   { value: "Courier", label: "Kurir" },
 ];
 
+const normalizeRole = (value: string) => {
+  const normalized = value?.toLowerCase();
+  if (normalized === "courier" || normalized === "kurir") return "Courier";
+  if (normalized === "admin") return "Admin";
+  if (normalized === "user") return "User";
+  return value;
+};
+
 export default function Home() {
   const router = useRouter();
   const [isLogin, setIsLogin] = useState(true);
@@ -56,8 +64,9 @@ export default function Home() {
         password,
       });
 
+      const normalizedRole = normalizeRole(res.data.role);
       localStorage.setItem("token", res.data.token);
-      localStorage.setItem("role", res.data.role);
+      localStorage.setItem("role", normalizedRole);
       localStorage.setItem("email", email);
 
       setMessage("Login berhasil. Mengarahkan ke dashboard...");
