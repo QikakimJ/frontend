@@ -5,16 +5,26 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import api from "../lib/api";
 
+const roles = [
+  { value: "User", label: "User" },
+  { value: "Admin", label: "Admin" },
+  { value: "Courier", label: "Kurir" },
+];
+
 export default function Home() {
   const router = useRouter();
   const [isLogin, setIsLogin] = useState(true);
-
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [role, setRole] = useState("User");
+  const [message, setMessage] = useState("");
+  const [loading, setLoading] = useState(false);
 
   const handleRegister = async () => {
+    setLoading(true);
+    setMessage("");
+
     try {
       const res = await api.post("/User/register", {
         name,
@@ -23,17 +33,23 @@ export default function Home() {
         role,
       });
 
-      alert(res.data.message);
+      setMessage(res.data.message);
       setIsLogin(true);
+      setPassword("");
     } catch (err: unknown) {
-      const message = axios.isAxiosError(err)
+      const errorMessage = axios.isAxiosError(err)
         ? err.response?.data || "Register gagal"
         : "Register gagal";
-      alert(message);
+      setMessage(errorMessage);
+    } finally {
+      setLoading(false);
     }
   };
 
   const handleLogin = async () => {
+    setLoading(true);
+    setMessage("");
+
     try {
       const res = await api.post("/User/login", {
         email,
@@ -44,17 +60,19 @@ export default function Home() {
       localStorage.setItem("role", res.data.role);
       localStorage.setItem("email", email);
 
-      alert("Login berhasil");
+      setMessage("Login berhasil. Mengarahkan ke dashboard...");
       router.push("/dashboard");
     } catch (err: unknown) {
-      const message = axios.isAxiosError(err)
+      const errorMessage = axios.isAxiosError(err)
         ? err.response?.data || "Login gagal"
         : "Login gagal";
-      alert(message);
+      setMessage(errorMessage);
+    } finally {
+      setLoading(false);
     }
   };
 
-    return (
+  return (
     <div className="main-shell page-shell">
       <div className="page-grid">
         <section className="hero-panel p-10 text-white">
@@ -82,62 +100,87 @@ export default function Home() {
               Selamat datang di JNE
             </p>
             <h2 className="mt-4 text-3xl font-bold text-slate-900 sm:text-4xl">
-              {isLogin ? "Masuk ke JNE" : "Daftar Akun JNE"}
+              {isLogin ? "Masuk ke JNE" : "Buat Akun Baru"}
             </h2>
             <p className="mt-3 text-sm leading-6 text-slate-600">
-              Gunakan akun Anda untuk melihat dashboard pengiriman dan mengelola semua proses JNE dari satu tempat.
+              {isLogin
+                ? "Masuk untuk mengelola pengiriman dan melihat dashboard JNE."
+                : "Daftar akun baru untuk mulai menggunakan fitur tracking dan manajemen shipment."}
             </p>
 
-            <div className="auth-form mt-10">
+            <div className="auth-form mt-10 space-y-6">
               {!isLogin && (
                 <>
-                  <label>Nama lengkap</label>
-                  <input
-                    type="text"
-                    placeholder="Nama lengkap"
-                    className="input-field"
-                    value={name}
-                    onChange={(e) => setName(e.target.value)}
-                  />
+                  <div className="space-y-2">
+                    <label className="block text-sm font-medium text-slate-700">Nama lengkap</label>
+                    <input
+                      type="text"
+                      placeholder="Nama lengkap"
+                      className="input-field"
+                      value={name}
+                      onChange={(e) => setName(e.target.value)}
+                    />
+                  </div>
 
-                  <label>Peran</label>
-                  <select
-                    className="select-field"
-                    value={role}
-                    onChange={(e) => setRole(e.target.value)}
-                  >
-                    <option>User</option>
-                    <option>Admin</option>
-                    <option>Kurir</option>
-                  </select>
+                  <div className="space-y-2">
+                    <label className="block text-sm font-medium text-slate-700">Peran</label>
+                    <select
+                      className="select-field"
+                      value={role}
+                      onChange={(e) => setRole(e.target.value)}
+                    >
+                      {roles.map((option) => (
+                        <option key={option.value} value={option.value}>
+                          {option.label}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
                 </>
               )}
 
-              <label>Email</label>
-              <input
-                type="email"
-                placeholder="Email"
-                className="input-field"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-              />
+              <div className="space-y-2">
+                <label className="block text-sm font-medium text-slate-700">Email</label>
+                <input
+                  type="email"
+                  placeholder="Email"
+                  className="input-field"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                />
+              </div>
 
-              <label>Password</label>
-              <input
-                type="password"
-                placeholder="Password"
-                className="input-field"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-              />
+              <div className="space-y-2">
+                <label className="block text-sm font-medium text-slate-700">Password</label>
+                <input
+                  type="password"
+                  placeholder="Password"
+                  className="input-field"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                />
+              </div>
 
-              <button type="button" onClick={isLogin ? handleLogin : handleRegister} className="btn-primary">
-                {isLogin ? "Masuk" : "Daftar"}
-              </button>
+              {message && (
+                <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4 text-sm text-slate-700">
+                  {message}
+                </div>
+              )}
 
-              <button type="button" onClick={() => setIsLogin(!isLogin)} className="btn-secondary">
-                {isLogin ? "Belum punya akun? Daftar sekarang" : "Sudah punya akun? Masuk"}
-              </button>
+              <div className="flex flex-col gap-3">
+                <button
+                  type="button"
+                  onClick={isLogin ? handleLogin : handleRegister}
+                  className="btn-primary"
+                  disabled={loading}
+                >
+                  {loading ? (isLogin ? "Memproses login..." : "Memproses registrasi...") : isLogin ? "Masuk" : "Daftar"}
+                </button>
+
+                <button type="button" onClick={() => setIsLogin(!isLogin)} className="btn-secondary">
+                  {isLogin ? "Belum punya akun? Daftar sekarang" : "Sudah punya akun? Masuk"}
+                </button>
+              </div>
             </div>
           </div>
         </section>
