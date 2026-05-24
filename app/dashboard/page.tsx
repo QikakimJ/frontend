@@ -368,7 +368,7 @@ export default function Dashboard() {
                   </button>
                 </div>
 
-                {role === "Courier" && (
+                {role === "Courier" && shipmentResult && (
                   <div className="space-y-3 rounded-3xl bg-slate-50 p-5">
                     <p className="text-sm font-medium text-slate-500">Update Status Kurir</p>
                     <select
@@ -387,6 +387,12 @@ export default function Dashboard() {
                   </div>
                 )}
               </div>
+
+              {role === "Courier" && !shipmentResult && (
+                <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4 text-sm text-slate-700">
+                  Masukkan nomor resi dan cek status dulu sebelum melakukan update paket.
+                </div>
+              )}
 
               {statusMessage && (
                 <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4 text-sm text-slate-700">
