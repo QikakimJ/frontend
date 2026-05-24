@@ -12,10 +12,7 @@ export default function RootLayout({
 }) {
   return (
     <html lang="id">
-      <body
-        className="bg-slate-50 text-slate-900 antialiased"
-        style={{ backgroundColor: "#f4f7fb", color: "#0f172a" }}
-      >
+      <body className="bg-slate-50 text-slate-900 antialiased font-sans">
         {children}
       </body>
     </html>

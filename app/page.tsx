@@ -1,9 +1,12 @@
 "use client";
 
+import axios from "axios";
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import api from "../lib/api";
 
 export default function Home() {
+  const router = useRouter();
   const [isLogin, setIsLogin] = useState(true);
 
   const [name, setName] = useState("");
@@ -22,8 +25,11 @@ export default function Home() {
 
       alert(res.data.message);
       setIsLogin(true);
-    } catch (err: any) {
-      alert(err.response?.data || "Register gagal");
+    } catch (err: unknown) {
+      const message = axios.isAxiosError(err)
+        ? err.response?.data || "Register gagal"
+        : "Register gagal";
+      alert(message);
     }
   };
 
@@ -39,79 +45,65 @@ export default function Home() {
       localStorage.setItem("email", email);
 
       alert("Login berhasil");
-      window.location.href = "/dashboard";
-    } catch (err: any) {
-      alert(err.response?.data || "Login gagal");
+      router.push("/dashboard");
+    } catch (err: unknown) {
+      const message = axios.isAxiosError(err)
+        ? err.response?.data || "Login gagal"
+        : "Login gagal";
+      alert(message);
     }
   };
 
-  return (
-    <div
-      className="min-h-screen bg-slate-50 px-4 py-10 sm:px-6 sm:py-12"
-      style={{ backgroundColor: "#f4f7fb" }}
-    >
-      <div
-        className="mx-auto w-full max-w-6xl overflow-hidden rounded-[2rem] border border-slate-200 bg-white shadow-jne"
-        style={{ backgroundColor: "#ffffff" }}
-      >
-        <div className="grid gap-0 md:grid-cols-[1.2fr_1fr]">
-          <div className="relative overflow-hidden bg-jne-navy px-8 py-10 text-white sm:px-12 sm:py-16">
-            <div className="absolute -right-24 top-8 hidden h-64 w-64 rounded-full bg-jne-red/20 blur-3xl md:block" />
-            <div className="relative z-10 space-y-8">
-              <div className="inline-flex items-center gap-3 rounded-full border border-white/20 bg-white/10 px-4 py-2 text-xs font-semibold uppercase tracking-[0.3em] text-white/80">
-                JNE Mobile & Web
-              </div>
+    return (
+    <div className="main-shell page-shell">
+      <div className="page-grid">
+        <section className="hero-panel p-10 text-white">
+          <div className="badge">JNE Mobile & Web</div>
 
-              <div className="space-y-4">
-                <h1 className="text-5xl font-black leading-tight sm:text-6xl">
-                  JNE Express
-                </h1>
-                <p className="max-w-xl text-lg leading-8 text-slate-200">
-                  Pengiriman cepat, aman, dan terintegrasi untuk semua layanan JNE. Kelola pesanan dan tracking dengan pengalaman mobile/web yang modern.
-                </p>
-              </div>
-
-              <div className="grid gap-4 pt-6">
-                <div className="rounded-3xl border border-white/10 bg-white/10 p-4 shadow-xl shadow-slate-950/10">
-                  <p className="text-sm text-slate-100">🚚 Tracking pengiriman real-time</p>
-                </div>
-                <div className="rounded-3xl border border-white/10 bg-white/10 p-4 shadow-xl shadow-slate-950/10">
-                  <p className="text-sm text-slate-100">📦 Manajemen shipment dan kurir</p>
-                </div>
-                <div className="rounded-3xl border border-white/10 bg-white/10 p-4 shadow-xl shadow-slate-950/10">
-                  <p className="text-sm text-slate-100">📊 Laporan operasional profesional</p>
-                </div>
-              </div>
-            </div>
+          <div className="mt-8 space-y-6">
+            <h1 className="text-5xl font-black leading-tight tracking-tight sm:text-6xl">
+              JNE Express
+            </h1>
+            <p className="max-w-2xl text-lg leading-8 text-slate-200">
+              Pengiriman cepat, aman, dan terintegrasi untuk semua layanan JNE. Kelola pesanan dan tracking dengan pengalaman mobile/web yang modern.
+            </p>
           </div>
 
-          <div className="bg-slate-50 px-8 py-10 sm:px-12 sm:py-16">
-            <div className="max-w-md">
-              <div className="mb-8">
-                <p className="text-sm font-semibold uppercase tracking-[0.3em] text-jne-red">
-                  Selamat datang di JNE
-                </p>
-                <h2 className="mt-4 text-3xl font-bold text-slate-900 sm:text-4xl">
-                  {isLogin ? "Masuk ke JNE" : "Daftar Akun JNE"}
-                </h2>
-                <p className="mt-3 text-sm leading-6 text-slate-600">
-                  Gunakan akun Anda untuk melihat dashboard pengiriman dan mengelola semua proses JNE dari satu tempat.
-                </p>
-              </div>
+          <div className="mt-10 grid gap-4">
+            <div className="feature-chip">🚚 Tracking pengiriman real-time</div>
+            <div className="feature-chip">📦 Manajemen shipment dan kurir</div>
+            <div className="feature-chip">📊 Laporan operasional profesional</div>
+          </div>
+        </section>
 
+        <section className="auth-panel p-10">
+          <div className="max-w-md">
+            <p className="text-sm font-semibold uppercase tracking-[0.3em] text-jne-red">
+              Selamat datang di JNE
+            </p>
+            <h2 className="mt-4 text-3xl font-bold text-slate-900 sm:text-4xl">
+              {isLogin ? "Masuk ke JNE" : "Daftar Akun JNE"}
+            </h2>
+            <p className="mt-3 text-sm leading-6 text-slate-600">
+              Gunakan akun Anda untuk melihat dashboard pengiriman dan mengelola semua proses JNE dari satu tempat.
+            </p>
+
+            <div className="auth-form mt-10">
               {!isLogin && (
                 <>
-                  <label className="mb-2 block text-sm font-medium text-slate-700">Nama lengkap</label>
+                  <label>Nama lengkap</label>
                   <input
                     type="text"
                     placeholder="Nama lengkap"
-                    className="w-full rounded-3xl border border-slate-300 bg-white px-4 py-4 text-sm text-slate-900 shadow-sm outline-none transition focus:border-jne-red focus:ring-4 focus:ring-jne-red/10"
+                    className="input-field"
+                    value={name}
                     onChange={(e) => setName(e.target.value)}
                   />
 
-                  <label className="mt-4 mb-2 block text-sm font-medium text-slate-700">Peran</label>
+                  <label>Peran</label>
                   <select
-                    className="w-full rounded-3xl border border-slate-300 bg-white px-4 py-4 text-sm text-slate-900 shadow-sm outline-none transition focus:border-jne-red focus:ring-4 focus:ring-jne-red/10"
+                    className="select-field"
+                    value={role}
                     onChange={(e) => setRole(e.target.value)}
                   >
                     <option>User</option>
@@ -121,40 +113,34 @@ export default function Home() {
                 </>
               )}
 
-              <label className="mt-4 mb-2 block text-sm font-medium text-slate-700">Email</label>
+              <label>Email</label>
               <input
                 type="email"
                 placeholder="Email"
-                className="w-full rounded-3xl border border-slate-300 bg-white px-4 py-4 text-sm text-slate-900 shadow-sm outline-none transition focus:border-jne-red focus:ring-4 focus:ring-jne-red/10"
+                className="input-field"
+                value={email}
                 onChange={(e) => setEmail(e.target.value)}
               />
 
-              <label className="mt-4 mb-2 block text-sm font-medium text-slate-700">Password</label>
+              <label>Password</label>
               <input
                 type="password"
                 placeholder="Password"
-                className="w-full rounded-3xl border border-slate-300 bg-white px-4 py-4 text-sm text-slate-900 shadow-sm outline-none transition focus:border-jne-red focus:ring-4 focus:ring-jne-red/10"
+                className="input-field"
+                value={password}
                 onChange={(e) => setPassword(e.target.value)}
               />
 
-              <button
-                type="button"
-                onClick={isLogin ? handleLogin : handleRegister}
-                className="mt-6 inline-flex w-full items-center justify-center rounded-3xl bg-jne-red px-5 py-4 text-sm font-semibold text-white shadow-lg shadow-jne-red/20 transition hover:bg-[#c4000f] focus:outline-none focus:ring-4 focus:ring-jne-red/20"
-              >
+              <button type="button" onClick={isLogin ? handleLogin : handleRegister} className="btn-primary">
                 {isLogin ? "Masuk" : "Daftar"}
               </button>
 
-              <button
-                type="button"
-                onClick={() => setIsLogin(!isLogin)}
-                className="mt-4 w-full text-sm font-semibold text-slate-700 transition hover:text-jne-red"
-              >
+              <button type="button" onClick={() => setIsLogin(!isLogin)} className="btn-secondary">
                 {isLogin ? "Belum punya akun? Daftar sekarang" : "Sudah punya akun? Masuk"}
               </button>
             </div>
           </div>
-        </div>
+        </section>
       </div>
     </div>
   );
