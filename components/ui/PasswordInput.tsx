@@ -14,31 +14,56 @@ export function PasswordInput({
   value,
   onChange,
   placeholder = "Password",
-  className = "input-field",
+  className = "",
 }: PasswordInputProps) {
   const [showPassword, setShowPassword] = useState(false);
 
   return (
     <div className="relative w-full">
+
       <input
         type={showPassword ? "text" : "password"}
         placeholder={placeholder}
-        className={`${className} pr-12`}
         value={value}
         onChange={onChange}
+        className={`
+          w-full
+          rounded-full
+          border
+          px-5
+          pr-14
+          py-4
+          outline-none
+          ${className}
+        `}
       />
+
       <button
         type="button"
-        onClick={() => setShowPassword(!showPassword)}
-        className="absolute right-4 inset-y-0 flex items-center px-3 text-slate-600 hover:text-slate-800 p-0 bg-transparent border-0 focus:outline-none z-10"
-        aria-label={showPassword ? "Sembunyikan password" : "Tampilkan password"}
+        onClick={() => setShowPassword((prev) => !prev)}
+        className="
+          absolute
+          top-1/2
+          right-4
+          -translate-y-1/2
+          flex
+          items-center
+          justify-center
+          text-gray-500
+          hover:text-gray-700
+          bg-transparent
+          border-none
+          p-0
+          z-20
+        "
       >
         {showPassword ? (
-          <EyeOff className="w-5 h-5" />
+          <EyeOff size={22} />
         ) : (
-          <Eye className="w-5 h-5" />
+          <Eye size={22} />
         )}
       </button>
+
     </div>
   );
 }
