@@ -4,6 +4,7 @@ import axios from "axios";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import api from "../lib/api";
+import { PasswordInput } from "../components/ui/PasswordInput";
 
 const roles = [
   { value: "User", label: "User" },
@@ -161,12 +162,10 @@ export default function Home() {
 
               <div className="space-y-2">
                 <label className="block text-sm font-medium text-slate-700">Password</label>
-                <input
-                  type="password"
-                  placeholder="Password"
-                  className="input-field"
+                <PasswordInput
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
+                  placeholder="Password"
                 />
               </div>
 
