@@ -7,14 +7,12 @@ interface PasswordInputProps {
   value: string;
   onChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
   placeholder?: string;
-  className?: string;
 }
 
 export function PasswordInput({
   value,
   onChange,
   placeholder = "Password",
-  className = "",
 }: PasswordInputProps) {
   const [showPassword, setShowPassword] = useState(false);
 
@@ -23,19 +21,22 @@ export function PasswordInput({
 
       <input
         type={showPassword ? "text" : "password"}
-        placeholder={placeholder}
         value={value}
         onChange={onChange}
-        className={`
+        placeholder={placeholder}
+        className="
           w-full
+          h-[56px]
           rounded-full
           border
+          border-slate-300
+          bg-white
           px-5
           pr-14
-          py-4
+          text-base
           outline-none
-          ${className}
-        `}
+          focus:border-red-500
+        "
       />
 
       <button
@@ -43,24 +44,25 @@ export function PasswordInput({
         onClick={() => setShowPassword((prev) => !prev)}
         className="
           absolute
-          top-1/2
-          right-4
-          -translate-y-1/2
+          top-0
+          right-0
+          h-full
+          w-14
           flex
           items-center
           justify-center
-          text-gray-500
-          hover:text-gray-700
+          text-slate-500
+          hover:text-slate-700
           bg-transparent
           border-none
-          p-0
+          cursor-pointer
           z-20
         "
       >
         {showPassword ? (
-          <EyeOff size={22} />
+          <EyeOff size={20} />
         ) : (
-          <Eye size={22} />
+          <Eye size={20} />
         )}
       </button>
 
