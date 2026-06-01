@@ -18,16 +18,12 @@ export function PasswordInput({
 
   return (
     <div className="relative w-full">
-
       <input
         type={showPassword ? "text" : "password"}
         value={value}
         onChange={onChange}
         placeholder={placeholder}
-        className="
-          input-field
-          !pr-[4.5rem]
-        "
+        className="input-field"
       />
 
       <button
@@ -35,7 +31,7 @@ export function PasswordInput({
         onClick={() => setShowPassword((prev) => !prev)}
         className="
           absolute
-          right-14
+          right-3
           top-1/2
           -translate-y-1/2
           w-10
@@ -47,17 +43,22 @@ export function PasswordInput({
           hover:text-slate-700
           bg-transparent
           border-none
-          z-10
+          outline-none
+          cursor-pointer
+          z-20
         "
+        aria-label={
+          showPassword
+            ? "Sembunyikan password"
+            : "Tampilkan password"
+        }
       >
         {showPassword ? (
-          <EyeOff size={18} />
+          <EyeOff className="w-5 h-5" />
         ) : (
-          <Eye size={18} />
+          <Eye className="w-5 h-5" />
         )}
       </button>
-
     </div>
   );
 }
-

@@ -141,13 +141,25 @@ textarea {
 .input-field,
 .select-field {
   width: 100%;
-  min-height: 3.2rem;
+
+  min-height: 3.5rem;
+
   border-radius: 1.5rem;
+
   border: 1px solid #cbd5e1;
+
   background: #ffffff;
-  padding: 1rem 1.1rem;
+
+padding-top: 1rem;
+padding-bottom: 1rem;
+padding-left: 1.1rem;
+padding-right: 4.8rem;
+
   color: #0f172a;
-  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+
+  transition:
+    border-color 0.2s ease,
+    box-shadow 0.2s ease;
 }
 
 .input-field:focus,
