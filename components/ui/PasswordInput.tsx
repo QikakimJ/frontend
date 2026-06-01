@@ -19,18 +19,18 @@ export function PasswordInput({
   const [showPassword, setShowPassword] = useState(false);
 
   return (
-    <div className="relative flex items-center">
+    <div className="relative w-full">
       <input
         type={showPassword ? "text" : "password"}
         placeholder={placeholder}
-        className={`${className} pr-12`}
+        className={`${className} pr-14`}
         value={value}
         onChange={onChange}
       />
       <button
         type="button"
         onClick={() => setShowPassword(!showPassword)}
-        className="absolute right-4 text-slate-500 hover:text-slate-700 transition-colors p-1"
+        className="absolute right-0 top-0 bottom-0 flex items-center justify-center px-4 text-slate-500 hover:text-slate-700 transition-colors"
         aria-label={showPassword ? "Sembunyikan password" : "Tampilkan password"}
       >
         {showPassword ? (
