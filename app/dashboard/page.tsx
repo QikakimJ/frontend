@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { FormEvent, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import api from "../../lib/api";
 
@@ -65,6 +65,11 @@ export default function Dashboard() {
     }
   };
 
+  const handleCreateSubmit = async (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    await handleCreateShipment();
+  };
+
   const handleCreateShipment = async () => {
     if (!senderName || !receiverName || !origin || !destination) {
       setCreateMessage("Semua field pengiriman harus diisi.");
@@ -100,6 +105,11 @@ export default function Dashboard() {
     }
   };
 
+  const handleTrackSubmit = async (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    await handleTrackShipment();
+  };
+
   const handleTrackShipment = async () => {
     if (!trackingNumber) {
       setStatusMessage("Masukkan nomor resi terlebih dahulu.");
@@ -112,7 +122,7 @@ export default function Dashboard() {
 
     try {
       const response = await api.get(`/Shipment/track/${trackingNumber}`);
-      setShipmentResult(response.data);
+      setShipmentResult(response.data.shipment ?? response.data);
     } catch (error) {
       setStatusMessage("Tidak dapat menemukan detail pengiriman. Periksa nomor resi.");
     } finally {
@@ -135,6 +145,7 @@ export default function Dashboard() {
       });
       setStatusMessage("Status pengiriman berhasil diperbarui.");
       fetchNotifications();
+      await handleTrackShipment();
     } catch (error) {
       setStatusMessage("Gagal memperbarui status pengiriman.");
     } finally {
@@ -209,7 +220,7 @@ export default function Dashboard() {
                   <h3 className="mt-3 text-2xl font-bold text-white">Isi data paket Anda</h3>
                 </div>
                 <div className="action-panel__body">
-                  <div className="grid gap-4">
+                  <form onSubmit={handleCreateSubmit} className="space-y-4">
                     <input
                       type="text"
                       placeholder="Nama Pengirim"
@@ -238,10 +249,10 @@ export default function Dashboard() {
                       value={destination}
                       onChange={(e) => setDestination(e.target.value)}
                     />
-                  </div>
-                  <button type="button" onClick={handleCreateShipment} className="btn-primary mt-6" disabled={loading}>
-                    {loading ? "Membuat resi..." : "Buat Resi Baru"}
-                  </button>
+                    <button type="submit" className="btn-primary mt-6" disabled={loading}>
+                      {loading ? "Membuat resi..." : "Buat Resi Baru"}
+                    </button>
+                  </form>
                   {createdResi && (
                     <div className="status-banner mt-4">
                       <p className="font-semibold">Resi berhasil dibuat</p>
@@ -288,16 +299,18 @@ export default function Dashboard() {
                 <h3 className="mt-3 text-2xl font-bold text-white">Masukkan nomor resi</h3>
               </div>
               <div className="action-panel__body">
-                <input
-                  type="text"
-                  placeholder="Masukkan nomor resi"
-                  className="input-field"
-                  value={trackingNumber}
-                  onChange={(e) => setTrackingNumber(e.target.value)}
-                />
-                <button type="button" onClick={handleTrackShipment} className="btn-primary mt-4" disabled={loading}>
-                  {loading ? "Memeriksa..." : "Cek Status"}
-                </button>
+                <form onSubmit={handleTrackSubmit} className="space-y-4">
+                  <input
+                    type="text"
+                    placeholder="Masukkan nomor resi"
+                    className="input-field"
+                    value={trackingNumber}
+                    onChange={(e) => setTrackingNumber(e.target.value)}
+                  />
+                  <button type="submit" className="btn-primary mt-4" disabled={loading}>
+                    {loading ? "Memeriksa..." : "Cek Status"}
+                  </button>
+                </form>
 
                 {role === "Courier" && shipmentResult && (
                   <div className="mt-5 rounded-3xl border border-slate-200 bg-slate-50 p-5">
