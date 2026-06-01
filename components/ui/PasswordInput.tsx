@@ -23,14 +23,14 @@ export function PasswordInput({
       <input
         type={showPassword ? "text" : "password"}
         placeholder={placeholder}
-        className={`${className} pr-12`}
+          className={`${className} pr-10`}
         value={value}
         onChange={onChange}
       />
       <button
         type="button"
         onClick={() => setShowPassword(!showPassword)}
-        className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-600 hover:text-slate-800 p-0 bg-transparent border-0 focus:outline-none"
+          className="absolute right-6 top-1/2 -translate-y-1/2 text-slate-600 hover:text-slate-800 p-0 bg-transparent border-0 focus:outline-none"
         aria-label={showPassword ? "Sembunyikan password" : "Tampilkan password"}
       >
         {showPassword ? (
