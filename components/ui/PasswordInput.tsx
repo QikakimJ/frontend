@@ -35,7 +35,7 @@ export function PasswordInput({
         onClick={() => setShowPassword((prev) => !prev)}
         className="
           absolute
-          right-4
+          right-2
           top-1/2
           -translate-y-1/2
           w-10
