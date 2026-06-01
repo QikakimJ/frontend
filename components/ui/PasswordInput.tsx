@@ -25,17 +25,8 @@ export function PasswordInput({
         onChange={onChange}
         placeholder={placeholder}
         className="
-          w-full
-          h-[56px]
-          rounded-full
-          border
-          border-slate-300
-          bg-white
-          px-5
-          pr-14
-          text-base
-          outline-none
-          focus:border-red-500
+          input-field
+          !pr-[4.5rem]
         "
       />
 
@@ -44,10 +35,11 @@ export function PasswordInput({
         onClick={() => setShowPassword((prev) => !prev)}
         className="
           absolute
-          top-0
-          right-0
-          h-full
-          w-14
+          right-4
+          top-1/2
+          -translate-y-1/2
+          w-10
+          h-10
           flex
           items-center
           justify-center
@@ -55,14 +47,13 @@ export function PasswordInput({
           hover:text-slate-700
           bg-transparent
           border-none
-          cursor-pointer
-          z-20
+          z-10
         "
       >
         {showPassword ? (
-          <EyeOff size={20} />
+          <EyeOff size={18} />
         ) : (
-          <Eye size={20} />
+          <Eye size={18} />
         )}
       </button>
 
