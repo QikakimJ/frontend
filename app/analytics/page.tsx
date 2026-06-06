@@ -120,8 +120,6 @@ export default function Analytics() {
 
         {/* KPI Stats Cards */}
         <motion.div variants={itemVariants} className="grid grid-1 md:grid-2 lg:grid-4 gap-4">
-        {/* KPI Stats Cards */}
-        <motion.div variants={itemVariants} className="grid grid-1 md:grid-2 lg:grid-4 gap-4">
           <StatCard
             icon={Package}
             title="Total Pengiriman"
@@ -132,14 +130,14 @@ export default function Analytics() {
             icon={TrendingUp}
             title="Terkirim"
             value={analytics.deliveredCount}
-            trend={`${analytics.deliveredPercentage}%`}
+            change={`${analytics.deliveredPercentage}%`}
             variant="success"
           />
           <StatCard
             icon={BarChart3}
             title="Pending"
             value={analytics.pendingCount}
-            trend={`${analytics.pendingPercentage}%`}
+            change={`${analytics.pendingPercentage}%`}
             variant="warning"
           />
           <StatCard
