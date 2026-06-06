@@ -4,6 +4,9 @@ import axios from "axios";
 import { useState } from "react";
 import api from "../../lib/api";
 import { useRouter } from "next/navigation";
+import { AppLayout } from "../../components/ui/AppLayout";
+import { motion } from "framer-motion";
+import { Zap, MapPin, Weight, Package, ArrowRight, TrendingUp, AlertCircle, CheckCircle } from "lucide-react";
 
 interface ShippingCostResult {
   origin: string;
@@ -13,6 +16,12 @@ interface ShippingCostResult {
   etd?: string;
   price?: number;
 }
+
+const services = [
+  { id: "REG", name: "Regular", desc: "Pengiriman standar", icon: Package, duration: "2-3 hari", color: "from-blue-500 to-blue-700" },
+  { id: "OKE", name: "OKE", desc: "Pengiriman cepat", icon: Zap, duration: "1-2 hari", color: "from-amber-500 to-amber-700" },
+  { id: "SAME-DAY", name: "Same Day", desc: "Hari yang sama", icon: TrendingUp, duration: "< 24 jam", color: "from-red-500 to-red-700" },
+];
 
 export default function ShippingCalculator() {
   const router = useRouter();
@@ -45,7 +54,7 @@ export default function ShippingCalculator() {
       setResult(response.data);
     } catch (err: unknown) {
       const errorMessage = axios.isAxiosError(err)
-        ? err.response?.data || "Gagal menghitung ongkir"
+        ? err.response?.data?.message || "Gagal menghitung ongkir"
         : "Gagal menghitung ongkir";
       setError(String(errorMessage));
     } finally {
@@ -53,152 +62,277 @@ export default function ShippingCalculator() {
     }
   };
 
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    handleCalculate();
+  };
+
   return (
-    <div className="main-shell page-shell min-h-screen bg-gradient-to-b from-red-50 to-white">
-      {/* Header */}
-      <div className="bg-gradient-to-r from-red-600 to-red-700 text-white p-6 rounded-b-3xl shadow-lg">
-        <h1 className="text-3xl font-bold mb-2">🚚 Cek Ongkir</h1>
-        <p className="text-red-100">Hitung biaya pengiriman Anda dengan mudah</p>
-      </div>
+    <AppLayout>
+      <div className="space-y-8">
+        {/* Header */}
+        <motion.div
+          initial={{ opacity: 0, y: -20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5 }}
+        >
+          <h1 className="text-3xl lg:text-4xl font-bold text-slate-900">
+            Cek Ongkir
+          </h1>
+          <p className="text-slate-600 mt-2">
+            Hitung biaya pengiriman Anda dengan cepat dan akurat
+          </p>
+        </motion.div>
 
-      {/* Content */}
-      <div className="max-w-2xl mx-auto p-6 space-y-6">
-        {/* Form Card */}
-        <div className="bg-white rounded-2xl shadow-lg p-6 border-l-4 border-red-600">
-          <h2 className="text-xl font-bold mb-6 text-gray-800">Detail Pengiriman</h2>
-
-          {/* Origin */}
-          <div className="mb-5">
-            <label className="block text-sm font-semibold text-gray-700 mb-2">
-              📍 Kota Asal
-            </label>
-            <input
-              type="text"
-              value={origin}
-              onChange={(e) => setOrigin(e.target.value)}
-              placeholder="Contoh: Jakarta, Bandung"
-              className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-red-600 focus:outline-none transition"
-            />
-          </div>
-
-          {/* Destination */}
-          <div className="mb-5">
-            <label className="block text-sm font-semibold text-gray-700 mb-2">
-              📍 Kota Tujuan
-            </label>
-            <input
-              type="text"
-              value={destination}
-              onChange={(e) => setDestination(e.target.value)}
-              placeholder="Contoh: Surabaya, Medan"
-              className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-red-600 focus:outline-none transition"
-            />
-          </div>
-
-          {/* Weight */}
-          <div className="mb-5">
-            <label className="block text-sm font-semibold text-gray-700 mb-2">
-              ⚖️ Berat Paket (kg)
-            </label>
-            <input
-              type="number"
-              value={weight}
-              onChange={(e) => setWeight(e.target.value)}
-              placeholder="Contoh: 2.5"
-              step="0.1"
-              min="0"
-              className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-red-600 focus:outline-none transition"
-            />
-          </div>
-
-          {/* Service Type */}
-          <div className="mb-6">
-            <label className="block text-sm font-semibold text-gray-700 mb-2">
-              📦 Jenis Layanan
-            </label>
-            <div className="grid grid-cols-3 gap-3">
-              {[
-                { value: "REG", label: "Regular", etd: "2 hari" },
-                { value: "OKE", label: "OKE", etd: "1 hari" },
-                { value: "SAME-DAY", label: "Same Day", etd: "Hari ini" },
-              ].map((svc) => (
-                <button
-                  key={svc.value}
-                  onClick={() => setService(svc.value)}
-                  className={`p-3 rounded-lg border-2 transition font-medium ${
-                    service === svc.value
-                      ? "border-red-600 bg-red-50 text-red-700"
-                      : "border-gray-300 bg-white text-gray-700"
-                  }`}
-                >
-                  {svc.label}
-                  <div className="text-xs opacity-75">{svc.etd}</div>
-                </button>
-              ))}
-            </div>
-          </div>
-
-          {error && (
-            <div className="mb-4 p-3 bg-red-100 border border-red-400 text-red-700 rounded-lg">
-              {error}
-            </div>
-          )}
-
-          <button
-            onClick={handleCalculate}
-            disabled={loading}
-            className="w-full py-3 bg-gradient-to-r from-red-600 to-red-700 text-white font-bold rounded-lg hover:shadow-lg transition disabled:opacity-50"
+        <div className="grid lg:grid-cols-3 gap-8">
+          {/* Form Section */}
+          <motion.form
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5, delay: 0.1 }}
+            onSubmit={handleSubmit}
+            className="lg:col-span-2 space-y-6"
           >
-            {loading ? "Menghitung..." : "🧮 Hitung Ongkir"}
-          </button>
-        </div>
+            {/* Input Card */}
+            <div className="card">
+              <h2 className="text-xl font-bold text-slate-900 mb-6">Detail Pengiriman</h2>
 
-        {/* Result Card */}
-        {result && (
-          <div className="bg-white rounded-2xl shadow-lg p-6 border-l-4 border-green-600">
-            <h2 className="text-xl font-bold mb-4 text-gray-800">✅ Hasil Perhitungan</h2>
+              <div className="space-y-5">
+                {/* Origin */}
+                <div>
+                  <label className="form-label">Kota Asal</label>
+                  <div className="relative">
+                    <MapPin className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400" size={20} />
+                    <input
+                      type="text"
+                      value={origin}
+                      onChange={(e) => setOrigin(e.target.value)}
+                      placeholder="Contoh: Jakarta, Bandung"
+                      className="form-input pl-10"
+                    />
+                  </div>
+                </div>
 
-            <div className="space-y-3">
-              <div className="flex justify-between items-center">
-                <span className="text-gray-700">Dari:</span>
-                <span className="font-semibold text-gray-900">{result.origin}</span>
-              </div>
-              <div className="flex justify-between items-center">
-                <span className="text-gray-700">Ke:</span>
-                <span className="font-semibold text-gray-900">{result.destination}</span>
-              </div>
-              <div className="flex justify-between items-center">
-                <span className="text-gray-700">Berat:</span>
-                <span className="font-semibold text-gray-900">{result.weight} kg</span>
-              </div>
-              <div className="flex justify-between items-center">
-                <span className="text-gray-700">Layanan:</span>
-                <span className="font-semibold text-gray-900">{result.service}</span>
-              </div>
-              <div className="flex justify-between items-center">
-                <span className="text-gray-700">Estimasi:</span>
-                <span className="font-semibold text-gray-900">{result.etd}</span>
-              </div>
+                {/* Destination */}
+                <div>
+                  <label className="form-label">Kota Tujuan</label>
+                  <div className="relative">
+                    <MapPin className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400 rotate-45" size={20} />
+                    <input
+                      type="text"
+                      value={destination}
+                      onChange={(e) => setDestination(e.target.value)}
+                      placeholder="Contoh: Surabaya, Medan"
+                      className="form-input pl-10"
+                    />
+                  </div>
+                </div>
 
-              <div className="border-t-2 pt-4 mt-4">
-                <div className="flex justify-between items-center">
-                  <span className="text-lg font-bold text-gray-800">Total Biaya:</span>
-                  <span className="text-3xl font-bold text-red-600">
-                    Rp {result.price?.toLocaleString("id-ID") || 0}
-                  </span>
+                {/* Weight */}
+                <div>
+                  <label className="form-label">Berat Paket (kg)</label>
+                  <div className="relative">
+                    <Weight className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400" size={20} />
+                    <input
+                      type="number"
+                      value={weight}
+                      onChange={(e) => setWeight(e.target.value)}
+                      placeholder="Contoh: 2.5"
+                      step="0.1"
+                      min="0"
+                      className="form-input pl-10"
+                    />
+                  </div>
                 </div>
               </div>
             </div>
 
-            <button
-              onClick={() => router.push("/dashboard")}
-              className="w-full mt-4 py-3 bg-red-600 text-white font-bold rounded-lg hover:bg-red-700 transition"
+            {/* Service Selection */}
+            <div className="card">
+              <h3 className="text-lg font-bold text-slate-900 mb-4">Pilih Layanan</h3>
+              <div className="grid gap-3">
+                {services.map((svc) => {
+                  const Icon = svc.icon;
+                  const isSelected = service === svc.id;
+                  return (
+                    <motion.button
+                      key={svc.id}
+                      onClick={() => setService(svc.id)}
+                      whileHover={{ scale: 1.02 }}
+                      whileTap={{ scale: 0.98 }}
+                      className={`p-4 rounded-lg border-2 transition-all text-left ${
+                        isSelected
+                          ? "border-red-600 bg-red-50"
+                          : "border-slate-200 bg-white hover:border-slate-300"
+                      }`}
+                    >
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-3">
+                          <div className={`w-10 h-10 bg-gradient-to-br ${svc.color} rounded-lg flex items-center justify-center text-white`}>
+                            <Icon size={20} />
+                          </div>
+                          <div>
+                            <p className={`font-semibold ${isSelected ? "text-red-700" : "text-slate-900"}`}>
+                              {svc.name}
+                            </p>
+                            <p className="text-sm text-slate-600">{svc.desc}</p>
+                          </div>
+                        </div>
+                        <div className="text-right">
+                          <p className="text-xs font-semibold text-slate-500">{svc.duration}</p>
+                          {isSelected && (
+                            <CheckCircle size={20} className="text-red-600 mt-1" />
+                          )}
+                        </div>
+                      </div>
+                    </motion.button>
+                  );
+                })}
+              </div>
+            </div>
+
+            {/* Error Message */}
+            {error && (
+              <motion.div
+                initial={{ opacity: 0, y: -10 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="p-4 bg-red-50 border border-red-200 rounded-lg flex items-center gap-3"
+              >
+                <AlertCircle size={20} className="text-red-600 flex-shrink-0" />
+                <p className="text-red-700 text-sm">{error}</p>
+              </motion.div>
+            )}
+
+            {/* Submit Button */}
+            <motion.button
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.98 }}
+              type="submit"
+              disabled={loading}
+              className="w-full btn btn--primary btn--lg"
             >
-              ➡️ Lanjut Buat Pengiriman
-            </button>
-          </div>
+              {loading ? (
+                <>
+                  <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                  <span>Menghitung...</span>
+                </>
+              ) : (
+                <>
+                  <Zap size={20} />
+                  <span>Hitung Ongkir</span>
+                </>
+              )}
+            </motion.button>
+          </motion.form>
+
+          {/* Info Section */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5, delay: 0.2 }}
+            className="space-y-6"
+          >
+            {/* Tips Card */}
+            <div className="card card--gradient-secondary text-white">
+              <h3 className="text-lg font-bold mb-4">💡 Tips Pengiriman</h3>
+              <ul className="space-y-2 text-sm opacity-90">
+                <li className="flex gap-2">
+                  <span>•</span>
+                  <span>Pastikan berat paket sudah akurat</span>
+                </li>
+                <li className="flex gap-2">
+                  <span>•</span>
+                  <span>Pilih layanan sesuai kebutuhan</span>
+                </li>
+                <li className="flex gap-2">
+                  <span>•</span>
+                  <span>Biaya dapat berubah sewaktu-waktu</span>
+                </li>
+                <li className="flex gap-2">
+                  <span>•</span>
+                  <span>Verifikasi alamat penerima</span>
+                </li>
+              </ul>
+            </div>
+
+            {/* Service Info */}
+            <div className="card">
+              <h3 className="text-lg font-bold text-slate-900 mb-4">ℹ️ Info Layanan</h3>
+              <div className="space-y-3 text-sm text-slate-600">
+                <p>
+                  <span className="font-semibold text-slate-900">Regular:</span> Pengiriman standar dengan harga terjangkau
+                </p>
+                <p>
+                  <span className="font-semibold text-slate-900">OKE:</span> Pengiriman cepat untuk kebutuhan mendesak
+                </p>
+                <p>
+                  <span className="font-semibold text-slate-900">Same Day:</span> Pengiriman super cepat kota yang sama
+                </p>
+              </div>
+            </div>
+          </motion.div>
+        </div>
+
+        {/* Result Section */}
+        {result && (
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5 }}
+            className="card card--gradient-secondary text-white"
+          >
+            <div className="grid lg:grid-cols-2 gap-8">
+              <div>
+                <h2 className="text-2xl font-bold mb-6">✅ Hasil Perhitungan</h2>
+
+                <div className="space-y-4">
+                  <div className="flex items-center justify-between pb-4 border-b border-white/20">
+                    <span className="opacity-75">Dari:</span>
+                    <span className="font-semibold">{result.origin}</span>
+                  </div>
+                  <div className="flex items-center justify-between pb-4 border-b border-white/20">
+                    <span className="opacity-75">Ke:</span>
+                    <span className="font-semibold">{result.destination}</span>
+                  </div>
+                  <div className="flex items-center justify-between pb-4 border-b border-white/20">
+                    <span className="opacity-75">Berat:</span>
+                    <span className="font-semibold">{result.weight} kg</span>
+                  </div>
+                  <div className="flex items-center justify-between pb-4 border-b border-white/20">
+                    <span className="opacity-75">Layanan:</span>
+                    <span className="font-semibold">{result.service}</span>
+                  </div>
+                  <div className="flex items-center justify-between pb-4 border-b border-white/20">
+                    <span className="opacity-75">Estimasi:</span>
+                    <span className="font-semibold">{result.etd}</span>
+                  </div>
+                </div>
+              </div>
+
+              <div className="flex flex-col justify-between">
+                <div className="text-center py-8 bg-white/10 rounded-lg">
+                  <p className="text-sm opacity-75 mb-2">TOTAL BIAYA</p>
+                  <h3 className="text-4xl font-bold">
+                    Rp {result.price?.toLocaleString("id-ID") || 0}
+                  </h3>
+                </div>
+
+                <motion.button
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                  onClick={() => {
+                    router.push("/dashboard");
+                  }}
+                  className="bg-white text-red-600 font-bold py-3 px-6 rounded-lg hover:bg-slate-100 transition flex items-center justify-center gap-2"
+                >
+                  <ArrowRight size={20} />
+                  Lanjut Buat Pengiriman
+                </motion.button>
+              </div>
+            </div>
+          </motion.div>
         )}
       </div>
-    </div>
+    </AppLayout>
   );
 }
