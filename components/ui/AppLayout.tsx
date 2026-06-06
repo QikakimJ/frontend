@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import { Sidebar } from "./Sidebar";
 import { Header } from "./Header";
-import { normalizeRole } from "../lib/auth";
+import { normalizeRole } from "../../lib/auth";
 
 interface AppLayoutProps {
   children: React.ReactNode;
