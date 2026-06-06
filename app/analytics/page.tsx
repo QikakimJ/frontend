@@ -1,43 +1,55 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import api from "../../lib/api";
+import { normalizeRole } from "../../lib/auth";
 import { useRouter } from "next/navigation";
+
+type AnalyticsResponse = {
+  totalShipments: number;
+  deliveredCount: number;
+  deliveredPercentage: number;
+  pendingCount: number;
+  pendingPercentage: number;
+  onDeliveryCount: number;
+  topDestinations: Array<{ destination: string; count: number }>;
+  shipmentsPerDay: Array<{ date: string; count: number }>;
+};
 
 export default function Analytics() {
   const router = useRouter();
-  const [analytics, setAnalytics] = useState<any>(null);
+  const [analytics, setAnalytics] = useState<AnalyticsResponse | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
+  const fetchAnalytics = useCallback(async () => {
+    try {
+      setLoading(true);
+      const response = await api.get("/Shipment/analytics");
+      setAnalytics(response.data);
+    } catch (err: unknown) {
+      setError("Gagal memuat analytics");
+      console.error(err);
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
   useEffect(() => {
-    const checkAuth = async () => {
+    const checkAuth = () => {
       const token = localStorage.getItem("token");
-      const role = localStorage.getItem("role");
+      const role = normalizeRole(localStorage.getItem("role"));
 
       if (!token || role !== "Admin") {
         router.push("/");
         return;
       }
 
-      fetchAnalytics();
+      void fetchAnalytics();
     };
 
     checkAuth();
-  }, [router]);
-
-  const fetchAnalytics = async () => {
-    try {
-      setLoading(true);
-      const response = await api.get("/Shipment/analytics");
-      setAnalytics(response.data);
-    } catch (err: any) {
-      setError("Gagal memuat analytics");
-      console.error(err);
-    } finally {
-      setLoading(false);
-    }
-  };
+  }, [fetchAnalytics, router]);
 
   if (loading) {
     return (
@@ -107,7 +119,7 @@ export default function Analytics() {
           <div className="bg-white rounded-2xl shadow-lg p-6">
             <h2 className="text-lg font-bold mb-4 text-gray-900">🌍 Top Destinasi</h2>
             <div className="space-y-4">
-              {analytics.topDestinations?.map((dest: any, idx: number) => (
+              {analytics.topDestinations?.map((dest, idx) => (
                 <div key={idx} className="flex items-center gap-3">
                   <div className="text-2xl">
                     {idx === 0 ? "🥇" : idx === 1 ? "🥈" : idx === 2 ? "🥉" : "📌"}
@@ -135,7 +147,7 @@ export default function Analytics() {
           <div className="bg-white rounded-2xl shadow-lg p-6">
             <h2 className="text-lg font-bold mb-4 text-gray-900">📈 Pengiriman Per Hari</h2>
             <div className="space-y-3">
-              {analytics.shipmentsPerDay?.map((data: any, idx: number) => (
+              {analytics.shipmentsPerDay?.map((data, idx) => (
                 <div key={idx} className="flex items-center gap-3">
                   <div className="w-20 text-sm font-semibold text-gray-700">
                     {new Date(data.date).toLocaleDateString("id-ID", {
@@ -147,7 +159,7 @@ export default function Analytics() {
                     <div
                       className="bg-gradient-to-r from-red-600 to-red-700 h-6 rounded-full flex items-center justify-end pr-2"
                       style={{
-                        width: `${(data.count / Math.max(...analytics.shipmentsPerDay.map((d: any) => d.count), 1)) * 100}%`,
+                        width: `${(data.count / Math.max(...analytics.shipmentsPerDay.map((d) => d.count), 1)) * 100}%`,
                       }}
                     >
                       {data.count > 0 && (

@@ -1,8 +1,18 @@
 "use client";
 
+import axios from "axios";
 import { useState } from "react";
 import api from "../../lib/api";
 import { useRouter } from "next/navigation";
+
+interface ShippingCostResult {
+  origin: string;
+  destination: string;
+  weight: number;
+  service?: string;
+  etd?: string;
+  price?: number;
+}
 
 export default function ShippingCalculator() {
   const router = useRouter();
@@ -11,7 +21,7 @@ export default function ShippingCalculator() {
   const [weight, setWeight] = useState("");
   const [service, setService] = useState("REG");
   const [loading, setLoading] = useState(false);
-  const [result, setResult] = useState<any>(null);
+  const [result, setResult] = useState<ShippingCostResult | null>(null);
   const [error, setError] = useState("");
 
   const handleCalculate = async () => {
@@ -33,8 +43,11 @@ export default function ShippingCalculator() {
       });
 
       setResult(response.data);
-    } catch (err: any) {
-      setError(err.response?.data || "Gagal menghitung ongkir");
+    } catch (err: unknown) {
+      const errorMessage = axios.isAxiosError(err)
+        ? err.response?.data || "Gagal menghitung ongkir"
+        : "Gagal menghitung ongkir";
+      setError(String(errorMessage));
     } finally {
       setLoading(false);
     }

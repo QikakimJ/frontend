@@ -3,31 +3,43 @@
 import { FormEvent, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import api from "../../lib/api";
+import { normalizeRole } from "../../lib/auth";
+
+
+interface ShipmentRecord {
+  resi: string;
+  status: string;
+  senderName?: string;
+  receiverName?: string;
+  origin?: string;
+  destination?: string;
+}
 
 export default function Dashboard() {
   const router = useRouter();
-  const [role, setRole] = useState<string | null>(null);
-  const [email, setEmail] = useState<string | null>(null);
+  const role = normalizeRole(typeof window !== "undefined" ? localStorage.getItem("role") : null);
+  const email = typeof window !== "undefined" ? localStorage.getItem("email") : null;
 
-  const normalizeRole = (value: string | null) => {
-    const normalized = value?.toLowerCase();
-    if (normalized === "courier" || normalized === "kurir") return "Courier";
-    if (normalized === "admin") return "Admin";
-    if (normalized === "user") return "User";
-    return value;
-  };
   const [statusMessage, setStatusMessage] = useState("");
   const [trackingNumber, setTrackingNumber] = useState("");
-  const [shipmentResult, setShipmentResult] = useState<any>(null);
+  const [shipmentResult, setShipmentResult] = useState<ShipmentRecord | null>(null);
   const [updateStatus, setUpdateStatus] = useState("Picked");
   const [loading, setLoading] = useState(false);
-  const [shipments, setShipments] = useState<any[]>([]);
+  const [shipments, setShipments] = useState<ShipmentRecord[]>([]);
   const [senderName, setSenderName] = useState("");
   const [receiverName, setReceiverName] = useState("");
   const [origin, setOrigin] = useState("");
   const [destination, setDestination] = useState("");
-  const [createMessage, setCreateMessage] = useState("");
   const [createdResi, setCreatedResi] = useState("");
+
+  const fetchNotifications = async () => {
+    try {
+      const response = await api.get<ShipmentRecord[]>("/Shipment");
+      setShipments(response.data || []);
+    } catch (error) {
+      console.error(error);
+    }
+  };
 
   useEffect(() => {
     if (typeof window === "undefined") {
@@ -35,35 +47,18 @@ export default function Dashboard() {
     }
 
     const savedToken = localStorage.getItem("token");
-    const savedRole = localStorage.getItem("role");
-    const savedEmail = localStorage.getItem("email");
+    const savedRole = normalizeRole(localStorage.getItem("role"));
 
     if (!savedToken) {
       router.push("/");
       return;
     }
 
-    setRole(savedRole);
-    setEmail(savedEmail);
-
-    if (savedRole === "Admin" || savedRole === "Courier") {
-      fetchNotifications();
+    if (savedRole === "Admin" || savedRole === "Courier" || savedRole === "Supervisor") {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
+      void fetchNotifications();
     }
   }, [router]);
-
-  const logout = () => {
-    localStorage.clear();
-    router.push("/");
-  };
-
-  const fetchNotifications = async () => {
-    try {
-      const response = await api.get("/Shipment");
-      setShipments(response.data || []);
-    } catch (error) {
-      console.error(error);
-    }
-  };
 
   const handleCreateSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -72,17 +67,17 @@ export default function Dashboard() {
 
   const handleCreateShipment = async () => {
     if (!senderName || !receiverName || !origin || !destination) {
-      setCreateMessage("Semua field pengiriman harus diisi.");
+      setStatusMessage("Semua field pengiriman harus diisi.");
       return;
     }
 
     if (role !== "User") {
-      setCreateMessage("Hanya role User yang dapat membuat resi.");
+      setStatusMessage("Hanya role User yang dapat membuat resi.");
       return;
     }
 
     setLoading(true);
-    setCreateMessage("");
+    setStatusMessage("");
 
     try {
       const response = await api.post("/Shipment", {
@@ -93,13 +88,13 @@ export default function Dashboard() {
       });
 
       setCreatedResi(response.data.resi);
-      setCreateMessage("Resi berhasil dibuat. Simpan nomor berikut untuk tracking.");
+      setStatusMessage("Resi berhasil dibuat. Simpan nomor berikut untuk tracking.");
       setSenderName("");
       setReceiverName("");
       setOrigin("");
       setDestination("");
-    } catch (error) {
-      setCreateMessage("Gagal membuat resi baru. Pastikan data pengiriman valid.");
+    } catch {
+      setStatusMessage("Gagal membuat resi baru. Pastikan data pengiriman valid.");
     } finally {
       setLoading(false);
     }
@@ -123,7 +118,7 @@ export default function Dashboard() {
     try {
       const response = await api.get(`/Shipment/track/${trackingNumber}`);
       setShipmentResult(response.data.shipment ?? response.data);
-    } catch (error) {
+    } catch {
       setStatusMessage("Tidak dapat menemukan detail pengiriman. Periksa nomor resi.");
     } finally {
       setLoading(false);
@@ -146,7 +141,7 @@ export default function Dashboard() {
       setStatusMessage("Status pengiriman berhasil diperbarui.");
       fetchNotifications();
       await handleTrackShipment();
-    } catch (error) {
+    } catch {
       setStatusMessage("Gagal memperbarui status pengiriman.");
     } finally {
       setLoading(false);

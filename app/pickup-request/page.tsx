@@ -1,8 +1,17 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import api from "../../lib/api";
+import { normalizeRole } from "../../lib/auth";
 import { useRouter } from "next/navigation";
+
+interface PickupRecord {
+  id: number;
+  city: string;
+  scheduledDate: string;
+  address: string;
+  status: string;
+}
 
 export default function PickupRequest() {
   const router = useRouter();
@@ -14,32 +23,29 @@ export default function PickupRequest() {
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
-  const [myPickups, setMyPickups] = useState<any[]>([]);
+  const [myPickups, setMyPickups] = useState<PickupRecord[]>([]);
 
-  useEffect(() => {
-    const checkAuth = async () => {
-      const token = localStorage.getItem("token");
-      const role = localStorage.getItem("role");
-
-      if (!token || role !== "User") {
-        router.push("/");
-        return;
-      }
-
-      fetchMyPickups();
-    };
-
-    checkAuth();
-  }, [router]);
-
-  const fetchMyPickups = async () => {
+  const fetchMyPickups = useCallback(async () => {
     try {
-      const response = await api.get("/Pickup/my-pickups");
+      const response = await api.get<PickupRecord[]>("/Pickup/my-pickups");
       setMyPickups(response.data || []);
     } catch (err) {
       console.error(err);
     }
-  };
+  }, []);
+
+  useEffect(() => {
+    const token = localStorage.getItem("token");
+    const role = normalizeRole(localStorage.getItem("role"));
+
+    if (!token || role !== "User") {
+      router.push("/");
+      return;
+    }
+
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    void fetchMyPickups();
+  }, [fetchMyPickups, router]);
 
   const handleSubmit = async () => {
     if (!address || !city || !phoneNumber || !scheduledDate) {
@@ -52,7 +58,7 @@ export default function PickupRequest() {
     setMessage("");
 
     try {
-      const response = await api.post("/Pickup", {
+      await api.post("/Pickup", {
         address,
         city,
         phoneNumber,
@@ -71,8 +77,9 @@ export default function PickupRequest() {
         fetchMyPickups();
         setMessage("");
       }, 2000);
-    } catch (err: any) {
-      setError(err.response?.data || "Gagal membuat request pickup");
+    } catch (err: unknown) {
+      setError("Gagal membuat request pickup");
+      console.error(err);
     } finally {
       setLoading(false);
     }

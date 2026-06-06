@@ -1,24 +1,46 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import axios from "axios";
+import { useCallback, useEffect, useState } from "react";
 import { useParams } from "next/navigation";
 import api from "../../../lib/api";
+
+interface ShipmentRecord {
+  resi: string;
+  status: string;
+  origin: string;
+  destination: string;
+  senderName: string;
+  receiverName: string;
+  weight: number;
+  service?: string;
+  shippingCost?: number;
+  estimatedDelivery?: string;
+  actualDelivery?: string;
+  createdAt?: string;
+}
+
+interface HistoryRecord {
+  status: string;
+  createdAt: string;
+}
+
+interface QrCodeData {
+  qrCodeUrl?: string;
+  resi?: string;
+}
 
 export default function TrackingDetail() {
   const params = useParams();
   const resi = params.resi as string;
-  const [shipment, setShipment] = useState<any>(null);
-  const [history, setHistory] = useState<any[]>([]);
+  const [shipment, setShipment] = useState<ShipmentRecord | null>(null);
+  const [history, setHistory] = useState<HistoryRecord[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [showQR, setShowQR] = useState(false);
-  const [qrData, setQrData] = useState<any>(null);
+  const [qrData, setQrData] = useState<QrCodeData | null>(null);
 
-  useEffect(() => {
-    fetchTrackingData();
-  }, [resi]);
-
-  const fetchTrackingData = async () => {
+  const fetchTrackingData = useCallback(async () => {
     try {
       setLoading(true);
       const response = await api.get(`/Shipment/track/${resi}`);
@@ -28,12 +50,20 @@ export default function TrackingDetail() {
       // Get QR Code
       const qrResponse = await api.get(`/QrCode/${resi}`);
       setQrData(qrResponse.data);
-    } catch (err: any) {
-      setError(err.response?.data || "Gagal memuat data tracking");
+    } catch (err: unknown) {
+      const message = axios.isAxiosError(err)
+        ? err.response?.data || "Gagal memuat data tracking"
+        : "Gagal memuat data tracking";
+      setError(String(message));
     } finally {
       setLoading(false);
     }
-  };
+  }, [resi]);
+
+  useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    void fetchTrackingData();
+  }, [fetchTrackingData]);
 
   const getStatusIcon = (status: string) => {
     switch (status) {
@@ -102,7 +132,7 @@ export default function TrackingDetail() {
             <div>
               <h2 className="text-2xl font-bold text-gray-900 mb-1">{shipment.resi}</h2>
               <p className="text-sm text-gray-500">
-                Dibuat: {new Date(shipment.createdAt).toLocaleDateString("id-ID")}
+                Dibuat: {new Date(shipment.createdAt ?? Date.now()).toLocaleDateString("id-ID")}
               </p>
             </div>
             <button
@@ -192,6 +222,7 @@ export default function TrackingDetail() {
         {showQR && qrData && (
           <div className="bg-white rounded-2xl shadow-lg p-6 text-center">
             <h3 className="text-lg font-bold mb-4">Scan untuk Tracking</h3>
+            {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
               src={qrData.qrCodeUrl}
               alt="QR Code"

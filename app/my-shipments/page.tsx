@@ -1,44 +1,54 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import api from "../../lib/api";
+import { normalizeRole } from "../../lib/auth";
 import { useRouter } from "next/navigation";
+
+interface ShipmentRecord {
+  id: number;
+  resi: string;
+  status: string;
+  origin: string;
+  destination: string;
+  createdAt: string;
+  weight: number;
+  service?: string;
+  shippingCost?: number;
+}
 
 export default function MyShipments() {
   const router = useRouter();
-  const [shipments, setShipments] = useState<any[]>([]);
+  const [shipments, setShipments] = useState<ShipmentRecord[]>([]);
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState("All");
   const [error, setError] = useState("");
 
-  useEffect(() => {
-    const checkAuth = async () => {
-      const token = localStorage.getItem("token");
-      const role = localStorage.getItem("role");
-
-      if (!token || role !== "User") {
-        router.push("/");
-        return;
-      }
-
-      fetchShipments();
-    };
-
-    checkAuth();
-  }, [router]);
-
-  const fetchShipments = async () => {
+  const fetchShipments = useCallback(async () => {
     try {
       setLoading(true);
-      const response = await api.get("/Shipment/my-shipments");
+      const response = await api.get<ShipmentRecord[]>("/Shipment/my-shipments");
       setShipments(response.data || []);
-    } catch (err: any) {
+    } catch (err: unknown) {
       setError("Gagal memuat data pengiriman");
       console.error(err);
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
+
+  useEffect(() => {
+    const token = localStorage.getItem("token");
+    const role = normalizeRole(localStorage.getItem("role"));
+
+    if (!token || role !== "User") {
+      router.push("/");
+      return;
+    }
+
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    void fetchShipments();
+  }, [fetchShipments, router]);
 
   const filteredShipments = filter === "All" 
     ? shipments 

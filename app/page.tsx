@@ -4,21 +4,15 @@ import axios from "axios";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import api from "../lib/api";
+import { normalizeRole } from "../lib/auth";
 import { PasswordInput } from "../components/ui/PasswordInput";
 
 const roles = [
   { value: "User", label: "User" },
   { value: "Admin", label: "Admin" },
   { value: "Courier", label: "Kurir" },
+  { value: "Supervisor", label: "Supervisor" },
 ];
-
-const normalizeRole = (value: string) => {
-  const normalized = value?.toLowerCase();
-  if (normalized === "courier" || normalized === "kurir") return "Courier";
-  if (normalized === "admin") return "Admin";
-  if (normalized === "user") return "User";
-  return value;
-};
 
 export default function Home() {
   const router = useRouter();
@@ -68,6 +62,7 @@ export default function Home() {
       const normalizedRole = normalizeRole(res.data.role);
       localStorage.setItem("token", res.data.token);
       localStorage.setItem("role", normalizedRole);
+      localStorage.setItem("userId", String(res.data.userId ?? ""));
       localStorage.setItem("email", email);
 
       setMessage("Login berhasil. Mengarahkan ke dashboard...");
